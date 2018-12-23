@@ -39,6 +39,7 @@ const connectDb = () => {
         console.log('Database is connected');
     })
 }
+
 const run = () => {
     app.listen(ENV["server_port"], err => {
         if (err) {
@@ -48,11 +49,15 @@ const run = () => {
     
         console.log(`Coffee Chat server is running on ${ENV["server_port"]}`);
     });
+}
 
-    io.on('connection', () => {
-        console.log('Socket is connected');
+const manageSocket = () => {
+    io.on('connection', socket => {
+
     });
 }
 
 connectDb();
 run();
+manageSocket();
+
