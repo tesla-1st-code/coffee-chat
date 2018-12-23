@@ -11,6 +11,11 @@ import { HomeComponent } from './home/home.component';
 import { LoginComponent } from './login/login.component';
 import { ProfileComponent } from './profile/profile.component';
 import { ContactComponent } from './contact/contact.component';
+import { SharedService } from './shared.service';
+import { DataService } from './data.service';
+import { CookieService } from 'ngx-cookie-service';
+import { SocketService } from './socket.service';
+import { LocationStrategy, HashLocationStrategy } from '@angular/common';
 
 @NgModule({
   declarations: [
@@ -28,7 +33,7 @@ import { ContactComponent } from './contact/contact.component';
     HttpModule,
     ProgressHttpModule
   ],
-  providers: [],
+  providers: [CookieService, SharedService, DataService, SocketService, {provide: LocationStrategy, useClass: HashLocationStrategy}],
   bootstrap: [AppComponent]
 })
 export class AppModule { }

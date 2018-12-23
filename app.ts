@@ -6,6 +6,7 @@ import * as routingControllers from 'routing-controllers';
 import * as http from 'http';
 import * as socketIO from 'socket.io';
 import { SocketManager } from './socketManger';
+import { User } from './models/user';
 
 const ENV = require("./env.json")[process.env.NODE_ENV || "development"];
 const CORS = (req, res, next) => {
@@ -24,12 +25,6 @@ app.use(bodyParser.urlencoded({ limit: '50mb' , extended: false }));
 let server = http.createServer(app);
 let io = socketIO(server);
 
-routingControllers.useExpressServer(app, {
-    routePrefix: ENV['api_url'],
-    classTransformer: false,
-    controllers: [__dirname + "/controllers/*.js"]
-});
-
 const connectDb = () => {
     mongoose.connect(ENV["dsn"], { useNewUrlParser: true }, err => {
         if (err) {
@@ -38,26 +33,15 @@ const connectDb = () => {
         }
 
         console.log('Database is connected');
-    })
-}
-
-const run = () => {
-    app.listen(ENV["server_port"], err => {
-        if (err) {
-            console.log(err);
-            return;
-        }
-    
-        console.log(`Coffee Chat server is running on ${ENV["server_port"]}`);
     });
 }
 
-const runSocket = () => {
-    server.listen(ENV["socket_port"]);
+const run = () => {
+    server.listen(ENV["port"]);
+
     new SocketManager(io).run();
 }
 
 connectDb();
-runSocket();
 run();
 

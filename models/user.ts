@@ -8,5 +8,6 @@ export let User = model('User', new Schema({
         name: { type: String, required: true },
         status: { type: String, required: false },
         profilePath: { type: String, required: false }
-    }
+    },
+    contacts: [{userId: { type: Schema.Types.ObjectId, ref: 'User' }, roomId: String}]
 }, {versionKey: false, collection: 'users'}));

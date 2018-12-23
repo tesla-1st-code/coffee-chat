@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { SocketService } from '../socket.service';
 
 @Component({
   selector: 'app-home',
@@ -6,10 +7,16 @@ import { Component, OnInit } from '@angular/core';
   styleUrls: ['./home.component.scss']
 })
 export class HomeComponent implements OnInit {
+    contacts: any[] = [];
 
-  constructor() { }
+    constructor(private socketService: SocketService) { }
 
-  ngOnInit() {
-  }
+    ngOnInit() {
+        this.socketService.init();
+        this.socketService.emit('getContacts', {});
 
+        this.socketService.on('setContacts', data => {
+            this.contacts = data;
+        });
+    }
 }
