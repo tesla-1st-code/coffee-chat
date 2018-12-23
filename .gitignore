@@ -1,6 +1,7 @@
 node_modules
 *.js.map
 app.js
+socketManager.js
 env.json
 common/*.js
 common/*.js.map
