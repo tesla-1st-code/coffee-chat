@@ -2,11 +2,10 @@ import 'reflect-metadata';
 import * as express from 'express';
 import * as bodyParser from 'body-parser';
 import * as mongoose from 'mongoose';
-import * as routingControllers from 'routing-controllers';
 import * as http from 'http';
 import * as socketIO from 'socket.io';
-import { SocketManager } from './socketManger';
-import { User } from './models/user';
+import { SocketManager } from './socketManager';
+
 
 const ENV = require("./env.json")[process.env.NODE_ENV || "development"];
 const CORS = (req, res, next) => {
