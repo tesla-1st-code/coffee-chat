@@ -5,6 +5,7 @@ import * as mongoose from 'mongoose';
 import * as routingControllers from 'routing-controllers';
 import * as http from 'http';
 import * as socketIO from 'socket.io';
+import { SocketManager } from './socketManger';
 
 const ENV = require("./env.json")[process.env.NODE_ENV || "development"];
 const CORS = (req, res, next) => {
@@ -51,13 +52,12 @@ const run = () => {
     });
 }
 
-const manageSocket = () => {
-    io.on('connection', socket => {
-
-    });
+const runSocket = () => {
+    server.listen(ENV["socket_port"]);
+    new SocketManager(io).run();
 }
 
 connectDb();
+runSocket();
 run();
-manageSocket();
 
