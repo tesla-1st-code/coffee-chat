@@ -1,94 +1,138 @@
-import { Socket, Server } from 'socket.io';
-import { AuthController } from './controllers/auth';
-import { UserController } from './controllers/user';
+import { Socket } from "socket.io";
+import { UserController } from "./controllers/user";
+import { AuthController } from "./controllers/auth";
+import { RequestController } from "./controllers/request";
 
 export class SocketManager {
-    sockets: Socket[];
-    io: Server;
     authController: AuthController;
     userController: UserController;
+    requestController: RequestController;
+    socket: Socket;
 
-    constructor(_io: Server) {
-        this.io = _io;
+    constructor(_socket: Socket) {
+        this.socket =_socket;
         this.authController = new AuthController();
         this.userController = new UserController();
-        this.sockets = [];
+        this.requestController = new RequestController();
     }
 
-    run() {
-        this.io.on('connection', async socket => {
-            let auth = null;
+    setup() {
+        this.socket.on('authorize', async () => {
+            if (!this.socket.handshake['authorization'])
+                await this.authorize(this.socket.handshake.query.auth);
+        });
 
-            auth = await this.authorize(socket);
+        this.socket.on('login', async data => {
+            await this.login(data);
+        });
 
-            if (!auth)
+        this.socket.on('logout', () => {
+
+        });
+
+        this.socket.on('register', async data => {
+            await this.register(data);
+        });
+
+        this.socket.on('send-request', async data => {
+            let authorized = await this.authorize(this.socket.handshake.query.auth);
+
+            if (!authorized)
                 return;
 
-            socket.on('register', async data => {});
+            await this.sendRequest(this.socket.handshake['authorization']['id'], data.id);
+        });
 
-            socket.on('login', async data => {
-                let token = await this.login(data.userName, data.password, socket.handshake.address);
+        this.socket.on('findContact', async data => {
+            let authorized = await this.authorize(this.socket.handshake.query.auth);
 
-                if (token) 
-                    socket.handshake.query.auth = token;
-         
-                auth = await this.authorize(socket);
-            });
+            if (!authorized)
+                return;
 
-            socket.on('getContacts', async () => {
-                auth = await this.authorize(socket);
-
-                if (!auth)
-                    return;
-                
-                let user = await this.userController.getContacts(auth.userId);
-
-                socket.emit('setContacts', user.toJSON().contacts)
-            });
+            await this.findContact(data.query);
         });
     }
 
-    async authorize(socket: Socket) {
-        let auth = await this.authController.findByToken(socket.handshake.query.auth);
+    async authorize(token) {
+        if (!token) {
+            this.socket.emit('unauthorized', {});
+            return false;
+        }
+
+        let auth = await this.authController.findByToken(token);
 
         if (!auth) {
-            socket.emit('unauthorized', {});
-            return null;
+            this.socket.emit('unauthorized', {});
+            return;
         }
-        
-        this.addOrReplaceSocket(socket);
 
-        socket.emit('authorized', auth.toJSON());
+        let identity = {
+            id: auth.user._id,
+            token: auth.token,
+            userName: auth.user.userName,
+            profile: auth.user.profile
+        }
 
-        return auth.toJSON();
+        this.socket.handshake['authorization'] = identity;
+        this.socket.emit('authorized', identity);
+        return true;
     }
 
-    async login(userName: string, password: string, ipAddress: string) {
-        let token = null;
+    async login(data) {
+        let login = await this.userController.findLogin(data.userName, data.password);
 
-        let user = await this.userController.findLogin(userName, password);
+        if (!login) {
+            this.socket.emit('login-error', {error: 'Login is not found'});
+            return;
+        }
 
-        if (!user)
-           return token;
-
-        let auth = await this.authController.findByUserId(user._id);
+        let auth = await this.authController.findByUserId(login._id);
 
         if (!auth) {
-            token = await this.authController.save(user._id, ipAddress);
-        }
-        else {
-            token = auth.toJSON().token;
+            auth = await this.authController.save(login._id, this.socket.handshake.address);
         }
 
-        return token;
+        let identity = {
+            token: auth.token,
+            userName: login.userName,
+            profile: login.profile
+        }
+
+        this.socket.emit('authorized', identity);
     }
 
-    addOrReplaceSocket(socket: Socket) {
-        let socketIndex = this.sockets.findIndex(e => e.handshake.query.auth === socket.handshake.query.auth);
+    async register(data) {
+        let result = await  this.userController.register(data);
 
-        if (socketIndex > -1)
-            this.sockets[socketIndex] = socket;
-        else
-            this.sockets.push(socket);
+        if (!result) {
+            this.socket.emit('register-error', {error: result.error});
+            return;
+        }
+
+        this.socket.emit('register-success', result.data);
+    }
+
+    async findContact(query: string) {
+        let contact = await this.userController.findByUserName(query);
+        let identity = null;
+
+        if (contact) {
+            identity = {
+                id: contact._id,
+                userName: contact.userName,
+                profile: contact.profile
+            };
+        }
+  
+        this.socket.emit('result-contact', identity);
+    }
+
+    async sendRequest(senderId: string, recipientId: string) {
+         let request = await this.requestController.findRequest(senderId, recipientId);
+
+         if (!request)
+             request = await this.requestController.sendRequest(senderId, recipientId);
+
+         this.socket.emit('request-feed', request);
     }
 }

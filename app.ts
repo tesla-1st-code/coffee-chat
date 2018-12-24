@@ -1,11 +1,11 @@
-import 'reflect-metadata';
 import * as express from 'express';
 import * as bodyParser from 'body-parser';
-import * as mongoose from 'mongoose';
+import * as database from './common/database';
 import * as http from 'http';
 import * as socketIO from 'socket.io';
-import { SocketManager } from './socketManager';
+import * as siofu from 'socketio-file-upload';
 
+import { SocketManager } from './socketManager';
 
 const ENV = require("./env.json")[process.env.NODE_ENV || "development"];
 const CORS = (req, res, next) => {
@@ -24,23 +24,11 @@ app.use(bodyParser.urlencoded({ limit: '50mb' , extended: false }));
 let server = http.createServer(app);
 let io = socketIO(server);
 
-const connectDb = () => {
-    mongoose.connect(ENV["dsn"], { useNewUrlParser: true }, err => {
-        if (err) {
-            console.log(err);
-            return;
-        }
+database.connect();
 
-        console.log('Database is connected');
-    });
-}
+server.listen(ENV["port"]);
 
-const run = () => {
-    server.listen(ENV["port"]);
-
-    new SocketManager(io).run();
-}
-
-connectDb();
-run();
-
+io.on('connection', socket => {
+    let manager = new SocketManager(socket);
+    manager.setup();
+});

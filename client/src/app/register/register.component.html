@@ -1,0 +1,13 @@
+<div class="container text-center">
+    <form class="form-signin" (submit)="register()">
+        <img class="mb-4" src="/assets/images/logo2.png" alt="" width="250" height="100">
+        <label for="displayName" class="sr-only">Display Name</label>
+        <input type="text" name="displayName" [(ngModel)]="data.displayName" class="form-control" placeholder="Display Name" required="" autofocus="">
+        <label for="inputUsername" class="sr-only">Username</label>
+        <input type="text" name="inputUsername" [(ngModel)]="data.userName" class="form-control" placeholder="Username" required="" autofocus="">
+        <label for="inputPassword" class="sr-only">Password</label>
+        <input type="password" name="inputPassword" [(ngModel)]="data.password" class="form-control" placeholder="Password" required="">
+        <button class="btn btn-lg btn-primary btn-block mt-2" type="submit">Register</button>
+        
+    </form>
+</div>

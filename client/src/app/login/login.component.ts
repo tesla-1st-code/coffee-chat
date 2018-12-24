@@ -23,17 +23,13 @@ export class LoginComponent implements OnInit {
 
         this.socketService.init();
 
-        this.socketService.on('unauthorized', () => {
-            console.log('Unauthorized');
-        });
+        this.socketService.emit('authorize', {});
 
+        this.socketService.on('unauthorized', () => {});
+        
         this.socketService.on('authorized', data => {
             this.cookie.set('token', data.token);
             this.router.navigateByUrl('home');
-        });
-
-        this.socketService.on('connect', () => {
-            console.log('Connected');
         });
     }
 

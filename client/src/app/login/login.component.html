@@ -6,6 +6,7 @@
         <label for="inputPassword" class="sr-only">Password</label>
         <input type="password" name="inputPassword" [(ngModel)]="user.password" class="form-control" placeholder="Password" required="">
         <button class="btn btn-lg btn-primary btn-block" type="submit">Sign in</button>
-        <button class="btn btn-lg btn-primary btn-block" type="button">Register</button>
+        <button class="btn btn-lg btn-primary btn-block" type="button" [routerLink]="['/register']">Register</button>
+        <p class="text-white">Coffee chat is only experimental chat app using socket.io</p>
     </form>
 </div>

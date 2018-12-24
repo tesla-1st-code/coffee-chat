@@ -11,6 +11,8 @@ import { HomeComponent } from './home/home.component';
 import { LoginComponent } from './login/login.component';
 import { ProfileComponent } from './profile/profile.component';
 import { ContactComponent } from './contact/contact.component';
+import { RegisterComponent } from './register/register.component';
+
 import { SharedService } from './shared.service';
 import { DataService } from './data.service';
 import { CookieService } from 'ngx-cookie-service';
@@ -23,7 +25,8 @@ import { LocationStrategy, HashLocationStrategy } from '@angular/common';
     HomeComponent,
     LoginComponent,
     ProfileComponent,
-    ContactComponent
+    ContactComponent,
+    RegisterComponent
   ],
   imports: [
     BrowserModule,
